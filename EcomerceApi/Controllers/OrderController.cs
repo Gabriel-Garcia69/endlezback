@@ -46,9 +46,14 @@ namespace EcomerceApi.Controllers
         {
             try
             {
-                var spec = new OrderSpecification();
-                var user = await _orderRepository.GetAllAsync();
-                _response.ListDataObject = _mapper.Map<IReadOnlyList<OrderDto>>(user);
+                var orders = await _context.Order
+                    .Include(o => o.User)
+                    .Include(o => o.OrderType)
+                    .Include(o => o.OrderStatus)
+                    .Include(o => o.OrderProducts)
+                        .ThenInclude(op => op.Product)
+                    .ToListAsync();
+                _response.ListDataObject = _mapper.Map<IReadOnlyList<OrderDto>>(orders);
             }
             catch (Exception ex)
             {
@@ -74,7 +79,27 @@ namespace EcomerceApi.Controllers
                 }
 
                 var user = await _context.User.Include(u => u.CustomerAddresses).FirstAsync(u => u.Id == Guid.Parse(userId));
+
+                // Validar stock antes de crear la orden
+                foreach (var item in request.Products)
+                {
+                    var product = await _context.Product.FindAsync(item.ProductId);
+                    if (product is null)
+                    {
+                        _response.statusCode = 400;
+                        _response.Message = "Producto no encontrado";
+                        return Ok(_response);
+                    }
+                    if (product.Stock < item.Quantity)
+                    {
+                        _response.statusCode = 400;
+                        _response.Message = $"Sin stock suficiente para \"{product.Title}\". Disponible: {product.Stock}";
+                        return Ok(_response);
+                    }
+                }
+
                 var entity = _mapper.Map<Order>(request);
+                entity.CreatedDate = DateTime.UtcNow;
 
                 // Comentado todo lo relacionado con Pakke
                 // var pakkeBody = new ShipmentCreateDto
@@ -115,6 +140,18 @@ namespace EcomerceApi.Controllers
                 // var response = await _client.PostAsync("shipments", jsonContent);
 
                 var result = await _orderRepository.Insert(entity);
+
+                // Decrementar stock de cada producto vendido
+                foreach (var op in entity.OrderProducts)
+                {
+                    var product = await _context.Product.FindAsync(op.ProductId);
+                    if (product != null)
+                    {
+                        product.Stock = Math.Max(0, product.Stock - op.Quantity);
+                    }
+                }
+                await _context.SaveChangesAsync();
+
                 _response.DataObject = _mapper.Map<OrderDto>(entity);
             }
             catch (Exception ex)
@@ -127,25 +164,29 @@ namespace EcomerceApi.Controllers
         }
 
         [HttpPut]
-        public async Task<OrderResponse> Update(OrderUpdateDto user)
+        public async Task<OrderResponse> Update(OrderUpdateDto orderDto)
         {
             try
             {
-                var existingUser = await _orderRepository.GetByGuidAsync(user.Id);
-                if (existingUser == null)
+                var existing = await _context.Order
+                    .Include(o => o.User)
+                    .Include(o => o.OrderType)
+                    .Include(o => o.OrderStatus)
+                    .Include(o => o.OrderProducts)
+                        .ThenInclude(op => op.Product)
+                    .FirstOrDefaultAsync(o => o.Id == orderDto.Id);
+
+                if (existing == null)
                 {
                     _response.statusCode = 404;
-                    _response.Message = "El usuario no se encontró.";
+                    _response.Message = "La orden no se encontró.";
                     return _response;
                 }
 
-                var originalCreatedDate = existingUser.CreatedDate;
-
-                var _user = _mapper.Map(user, existingUser);
-
-                _orderRepository.Update(_user);
-                var result = await _orderRepository.SaveAsync();
-                _response.Message = "El cambio de usuario se realizó con éxito.";
+                _mapper.Map(orderDto, existing);
+                await _context.SaveChangesAsync();
+                _response.DataObject = _mapper.Map<OrderDto>(existing);
+                _response.Message = "Orden actualizada con éxito.";
             }
             catch (Exception ex)
             {

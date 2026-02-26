@@ -3,6 +3,7 @@ using Business.Logic;
 using Business.Logic.AuthLogic;
 using Business.Logic.CategoryLogic;
 using Business.Logic.CustomerAddress;
+using Business.Logic.CartLogic;
 using Business.Logic.OrderLogic;
 using Business.Logic.OrderStatusLogic;
 using Business.Logic.OrderTypeLogic;
@@ -36,6 +37,7 @@ builder.Services.AddTransient<OrderResponse>();
 builder.Services.AddTransient<OrderStatusResponse>();
 builder.Services.AddTransient<OrderTypeResponse>();
 builder.Services.AddTransient<ProductResponse>();
+builder.Services.AddTransient<CartResponse>();
 
 
 builder.Services.AddCors(options =>
@@ -53,6 +55,15 @@ builder.Services.Configure<IISServerOptions>(options => { options.MaxRequestBody
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<EcomerceDbContext>(x => x.UseSqlServer(connectionString!));
+
+// HttpClient para MercadoPago REST API
+builder.Services.AddHttpClient("MercadoPago", (sp, client) =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    client.BaseAddress = new Uri("https://api.mercadopago.com/");
+    client.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config["MercadoPago:AccessToken"]);
+});
 
 var app = builder.Build();
 app.UseSwagger();

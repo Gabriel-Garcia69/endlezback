@@ -7,7 +7,6 @@ using Core.Specification;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-
 namespace EcomerceApi.Controllers
 {
     [Route("api/[controller]")]
@@ -15,17 +14,76 @@ namespace EcomerceApi.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IGenericRepository<Product> _productRepository;
+        private readonly IGenericRepository<ProductImage> _productImageRepository;
         private readonly ProductResponse _response;
         private IMapper _mapper;
 
-        public ProductController(IGenericRepository<Product> productRepository
-            , ProductResponse response
-            , IMapper mapper
-        )
+        [HttpGet("{productId}/images")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetProductImages(Guid productId)
+        {
+            try
+            {
+                // Obtener todas las imágenes asociadas al producto
+                var images = await _productImageRepository.GetAllAsync();
+                var productImages = images.Where(img => img.ProductId == productId).ToList();
+                return Ok(productImages);
+            }
+            catch (Exception ex)
+            {
+                return Conflict(new { Message = "Error al obtener las imágenes", Error = ex.Message });
+            }
+        }
+        public ProductController(
+            IGenericRepository<Product> productRepository,
+            IGenericRepository<ProductImage> productImageRepository,
+            ProductResponse response,
+            IMapper mapper)
         {
             _productRepository = productRepository;
+            _productImageRepository = productImageRepository;
             _response = response;
             _mapper = mapper;
+        }
+        [HttpPost("images")]
+        public async Task<IActionResult> UploadImages(List<IFormFile> images, [FromQuery] Guid productId)
+        {
+            try
+            {
+                var product = await _productRepository.GetByGuidAsync(productId);
+                if (product is null)
+                    return NotFound("El producto no se encontró.");
+
+                foreach (var image in images)
+                {
+                    if (image != null && image.Length > 0)
+                    {
+                        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+                        var path = Path.Combine(Directory.GetCurrentDirectory(), "images", "products", fileName);
+
+                        if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "images", "products")))
+                            Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "images", "products"));
+
+                        using (var stream = new FileStream(path, FileMode.Create))
+                            await image.CopyToAsync(stream);
+
+                        var productImage = new ProductImage
+                        {
+                            Id = Guid.NewGuid(),
+                            ProductId = productId,
+                            FileName = fileName,
+                            CreatedDate = DateTime.UtcNow
+                        };
+                        await _productImageRepository.Insert(productImage);
+                    }
+                }
+                await _productImageRepository.SaveAsync();
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return Conflict("Error al subir las imágenes");
+            }
         }
         
         [HttpGet]
@@ -91,7 +149,7 @@ namespace EcomerceApi.Controllers
                 {
                     return NotFound("El producto no se encontró.");
                 }
-                
+
                 if (image != null && image.Length > 0)
                 {
                     // Eliminar la imagen antigua si existe
@@ -118,9 +176,12 @@ namespace EcomerceApi.Controllers
                         await image.CopyToAsync(stream);
                     }
 
-                    product.ImagePath = Path.Combine("images", "products", fileName);
+                    product.ImagePath = fileName;
+                    // Guardar el producto actualizado en la base de datos
+                    _productRepository.Update(product);
+                    await _productRepository.SaveAsync();
                 }
-                
+
                 return Ok();
             }
             catch (Exception)
@@ -149,7 +210,7 @@ namespace EcomerceApi.Controllers
         }
 
         [HttpPut]
-        public async Task<ProductResponse> Update(ProductUpdateDto product, IFormFile image)
+        public async Task<ProductResponse> Update([FromBody] ProductUpdateDto product)
         {
             try
             {

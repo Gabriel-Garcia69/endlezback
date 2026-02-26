@@ -7,6 +7,7 @@
         public string LastName { get; set; }
         public string Email { get; set; }
         public bool EmailConfirmed { get; set; }
+        public string Phone { get; set; }
         public Guid ProfileId { get; set; }
         public string ProfileName { get; set; }
     }

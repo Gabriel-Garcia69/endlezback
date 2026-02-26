@@ -22,10 +22,10 @@ namespace Business.Mappings
 
 
          
-            CreateMap<Core.Entities.Profiles, ProfileDto>();
-            CreateMap<ProfileDto, Core.Entities.Profiles>();
-            CreateMap<ProfileCreateDto, Core.Entities.Profiles>();
-            CreateMap<ProfileUpdateDto, Core.Entities.Profiles>();
+            CreateMap<Core.Entities.Profile, ProfileDto>();
+            CreateMap<ProfileDto, Core.Entities.Profile>();
+            CreateMap<ProfileCreateDto, Core.Entities.Profile>();
+            CreateMap<ProfileUpdateDto, Core.Entities.Profile>();
 
             CreateMap<UserCreateDto, User>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
@@ -62,10 +62,20 @@ namespace Business.Mappings
             CreateMap<OrderProductCreateDto, OrderProduct>()
                 .ForMember(dest => dest.OrderId, opt => opt.Ignore()); // Ignorar OrderId, se establecerá más tarde
 
+            // Mapping de OrderUpdateDto a Order (solo campos editables, ignora navegación)
+            CreateMap<OrderUpdateDto, Order>()
+                .ForMember(dest => dest.User, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderType, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderStatus, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderProducts, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore());
+
             // Mapping de Order a OrderDto
-            CreateMap<Order, OrderDto>()
-                .ForMember(dest => dest.OrderType, opt => opt.MapFrom(src => src.OrderType.Title)) // Mapear el título del tipo de orden
-                .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.OrderStatus.Title)); // Mapear el título del estado de orden
+            CreateMap<Order, OrderDto>();
+
+            // Mapping de OrderProduct a OrderProductDto (incluye nombre del producto)
+            CreateMap<OrderProduct, OrderProductDto>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Title : string.Empty));
 
             // Mapping de OrderProduct a OrderProductCreateDto
             CreateMap<OrderProduct, OrderProductCreateDto>();

@@ -15,9 +15,12 @@ namespace Business.Data
         public DbSet<OrderProduct> OrderProduct { get; set; }
         public DbSet<OrderStatus> OrderStatus { get; set; }
         public DbSet<User> User { get; set; }
-        public DbSet<Profiles> Profile { get; set; }
-        public DbSet<Product> Product { get; set; }
+        public DbSet<Profile> Profile { get; set; }
+    public DbSet<Product> Product { get; set; }
+    public DbSet<ProductImage> ProductImage { get; set; }
         public DbSet<OrderType> OrderType { get; set; }
+        public DbSet<CartItem> CartItem { get; set; }
+        public DbSet<PendingPayment> PendingPayment { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,6 +29,11 @@ namespace Business.Data
 
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
+            // Configurar relación uno a muchos: Product -> ProductImage
+            modelBuilder.Entity<Product>()
+                .HasMany(p => p.Images)
+                .WithOne(pi => pi.Product)
+                .HasForeignKey(pi => pi.ProductId);
         }
     }
 }

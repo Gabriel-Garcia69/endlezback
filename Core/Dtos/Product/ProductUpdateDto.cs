@@ -9,6 +9,7 @@
         public int Stock { get; set; }
         public Guid CategoryId { get; set; }
         public List<string> Sizes { get; set; } = new List<string>(); // Representa las tallas disponibles
+        public string ImagePath { get; set; } = string.Empty;
 
     }
 }

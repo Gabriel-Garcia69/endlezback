@@ -20,10 +20,16 @@ namespace Core.Entities
 
         public DateTime CreatedDate { get; set; }
 
+        // Shipping address snapshot at time of order
+        public string ShippingFirstName { get; set; } = string.Empty;
+        public string ShippingLastName { get; set; } = string.Empty;
+        public string ShippingAddress { get; set; } = string.Empty;
+        public string ShippingApartment { get; set; } = string.Empty;
+        public string ShippingCity { get; set; } = string.Empty;
+        public string ShippingState { get; set; } = string.Empty;
+        public string ShippingPostalCode { get; set; } = string.Empty;
+        public string ShippingPhone { get; set; } = string.Empty;
+
         public List<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
-
-
-        // Future enhancement for shipments
-        // public Guid ShipmentId { get; set; } 
     }
 }

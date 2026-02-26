@@ -129,15 +129,17 @@ namespace EcomerceApi.Controllers
             try
             {
                 var userId = User.FindFirst("id")!.Value;
-                var user = await _userRepository.GetByGuidAsync(Guid.Parse(userId));
-                
+                var user = await _context.User
+                    .Include(u => u.Profile)
+                    .FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
+
                 if (user is null)
                 {
                     _response.Message = "No existe el usuario con los datos proporcionados";
                     _response.statusCode = 404;
                     return _response;
                 }
-                
+
                 _response.DataObject = _mapper.Map<UserDto>(user);
             }
             catch (Exception ex)

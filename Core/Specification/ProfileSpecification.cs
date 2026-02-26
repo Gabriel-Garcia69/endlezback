@@ -4,10 +4,10 @@ using System.Linq.Expressions;
 
 namespace Core.Specification
 {
-    public class ProfileSpecification : BaseSpecification<Profiles>
+    public class ProfileSpecification : BaseSpecification<Profile>
     {
-        public Expression<Func<Profiles, bool>> Criteria { get; }
-        public List<Expression<Func<Profiles, object>>> Includes { get; } = new();
+        public Expression<Func<Profile, bool>> Criteria { get; }
+        public List<Expression<Func<Profile, object>>> Includes { get; } = new();
 
         public ProfileSpecification()
         {

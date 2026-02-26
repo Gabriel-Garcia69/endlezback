@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Business.Logic.ProfileLogic;
 using Core.Dtos.Profile;
-using Core.Entities;
 using Core.Interface;
 using Core.Specification;
 using Microsoft.AspNetCore.Mvc;
+using Profile = Core.Entities.Profile;
 
 namespace EcomerceApi.Controllers
 {
@@ -12,12 +12,12 @@ namespace EcomerceApi.Controllers
     [ApiController]
     public class ProfileController : ControllerBase
     {
-        private readonly IGenericRepository<Profiles> _profileRepository;
+        private readonly IGenericRepository<Profile> _profileRepository;
         private readonly ProfileResponse _response;
         private readonly IMapper _mapper;
 
         public ProfileController(
-            IGenericRepository<Profiles> profileRepository,
+            IGenericRepository<Profile> profileRepository,
             ProfileResponse response,
             IMapper mapper)
         {
@@ -74,7 +74,7 @@ namespace EcomerceApi.Controllers
         {
             try
             {
-                var newProfile = _mapper.Map<Profiles>(profile);
+                var newProfile = _mapper.Map<Profile>(profile);
                 var result = await _profileRepository.Insert(newProfile);
                 _response.DataObject = _mapper.Map<ProfileDto>(result);
             }

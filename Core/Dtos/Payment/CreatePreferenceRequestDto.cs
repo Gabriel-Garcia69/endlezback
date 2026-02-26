@@ -1,14 +1,11 @@
-﻿namespace Core.Dtos.Order
+namespace Core.Dtos.Payment
 {
-    public class OrderCreateDto
+    public class CreatePreferenceRequestDto
     {
         public Guid UserId { get; set; }
-        public decimal Total { get; set; }
+        public List<PreferenceItemDto> Items { get; set; } = new();
 
-        public int OrderTypeId { get; set; }
-        public Guid OrderStatusId { get; set; }
-
-        // Shipping address at time of order
+        // Dirección de envío
         public string ShippingFirstName { get; set; } = string.Empty;
         public string ShippingLastName { get; set; } = string.Empty;
         public string ShippingAddress { get; set; } = string.Empty;
@@ -17,7 +14,5 @@
         public string ShippingState { get; set; } = string.Empty;
         public string ShippingPostalCode { get; set; } = string.Empty;
         public string ShippingPhone { get; set; } = string.Empty;
-
-        public List<OrderProductCreateDto> Products { get; set; } = new List<OrderProductCreateDto>();
     }
 }

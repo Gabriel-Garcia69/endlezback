@@ -1,14 +1,11 @@
-﻿namespace Core.Dtos.Order
+namespace Core.Entities
 {
-    public class OrderCreateDto
+    public class PendingPayment
     {
+        public Guid Id { get; set; }
         public Guid UserId { get; set; }
         public decimal Total { get; set; }
-
-        public int OrderTypeId { get; set; }
-        public Guid OrderStatusId { get; set; }
-
-        // Shipping address at time of order
+        public string ItemsJson { get; set; } = "[]";
         public string ShippingFirstName { get; set; } = string.Empty;
         public string ShippingLastName { get; set; } = string.Empty;
         public string ShippingAddress { get; set; } = string.Empty;
@@ -17,7 +14,6 @@
         public string ShippingState { get; set; } = string.Empty;
         public string ShippingPostalCode { get; set; } = string.Empty;
         public string ShippingPhone { get; set; } = string.Empty;
-
-        public List<OrderProductCreateDto> Products { get; set; } = new List<OrderProductCreateDto>();
+        public DateTime CreatedAt { get; set; }
     }
 }

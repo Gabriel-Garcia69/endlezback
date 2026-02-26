@@ -10,7 +10,7 @@ namespace Core.Entities
         public required string Phone { get; set; }
         public required string Password { get; set; }
         public Guid ProfileId { get; set; }
-        public Profiles Profile { get; set; } = null!;
+        public Profile Profile { get; set; } = null!;
 
         public DateTime CreatedDate { get; set; }
         public ICollection<CustomerAddress> CustomerAddresses { get; set; } = [];

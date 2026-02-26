@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Core.Entities
 {
-    public class Profiles
+    public class Profile
     {
         public Guid Id { get; set; }
         public required string Title { get; set; }

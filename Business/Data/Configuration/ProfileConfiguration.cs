@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Business.Data.Configuration
 {
-    public class ProfileConfiguration : IEntityTypeConfiguration<Profiles>
+    public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
     {
-        public void Configure(EntityTypeBuilder<Profiles> builder)
+        public void Configure(EntityTypeBuilder<Profile> builder)
         {
             builder.HasKey(p => p.Id);
 
